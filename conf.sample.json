@@ -1,0 +1,14 @@
+{
+    "id": "id",
+    "token": "token",
+    "domains": [
+        {
+            "name": "baidu.com",
+            "sub_domains": ["@", "*"]
+        },
+        {
+            "name": "google.com",
+            "sub_domains": ["@", "*"]
+        }
+    ]
+}
