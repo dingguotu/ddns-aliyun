@@ -29,7 +29,7 @@ ddns-aliyun 是基于[阿里云解析DNS](https://help.aliyun.com/product/29697.
 通过本命令获取 ddns-aliyun
 
 ```bash
-git clone https://gitee.com/tdg/ddns-aliyun.git
+git clone https://github.com/dingguotu/ddns-aliyun.git
 ```
 
 ---
