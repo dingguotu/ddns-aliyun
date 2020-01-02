@@ -65,8 +65,8 @@ def get_record_value(access_key_id, access_key_secret, domain_name, sub_domain):
     CommonParams['DomainName'] = domain_name
     try:
         data = get_response_data(access_key_secret, CommonParams)
-        records = data['DomainRecords']
-        for record in records['Record']:
+        records = data['DomainRecords']['Record']
+        for record in records:
             if record['Type'] == 'A' and record['RR'] == sub_domain:
                 return record['Value']
         return 0
@@ -81,7 +81,7 @@ def get_record_id(access_key_id, access_key_secret, domain_name, sub_domain):
     CommonParams['DomainName'] = domain_name
     try:
         data = get_response_data(access_key_secret, CommonParams)
-        records = data['DomainRecords']
+        records = data['DomainRecords']['Record']
         for record in records:
             if record['Type'] == 'A' and record['RR'] == sub_domain:
                 return {record['RecordId']}
