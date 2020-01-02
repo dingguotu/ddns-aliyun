@@ -54,8 +54,8 @@ ns2.alidns.com
 
 ```bash
 {
-    "id": <api_token_id>,
-    "token": <api_token>,
+    "access_key": <access_key>,
+    "access_secret": <access_secret>,
     "domains": [
         {
             "name": <first_domain>,
