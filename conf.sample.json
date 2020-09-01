@@ -1,6 +1,6 @@
 {
-    "id": "id",
-    "token": "token",
+    "access_key": "id",
+    "access_secret": "token",
     "domains": [
         {
             "name": "baidu.com",
