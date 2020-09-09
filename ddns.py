@@ -1,10 +1,8 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 from urllib import request
-import socket 
 import json
 import os
-import re
 import aliyun
 
 global LocalIP
@@ -33,13 +31,10 @@ def ddns(domain):
     
 def get_ip():
     global LocalIP
-    #sock = socket.create_connection(('ns1.dnspod.net', 6666), 20)
-    #LocalIP = sock.recv(16).decode('utf-8')
-    url = str(request.urlopen(r'http://txt.go.sohu.com/ip/soip').read())
-    ip = re.findall(r'\d+.\d+.\d+.\d+', url)
-    LocalIP = ip[0]
+    response = request.urlopen(r'http://ip.taobao.com/outGetIpInfo?ip=myip&accessKey=alibaba-inc').read().decode('utf-8')
+    data = json.loads(response)
+    LocalIP = data['data']['ip']
     print(f'LocalIP is {LocalIP}')
-    #sock.close()
 
     
 if __name__ == '__main__':
