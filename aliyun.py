@@ -2,7 +2,8 @@
 # -*- coding: UTF-8 -*-
 from urllib import request, parse
 import hmac, datetime, uuid, base64
-import json
+import json, os, logging
+import logger
 
 Headers = {
     'Accept': 'text/json',
@@ -44,7 +45,7 @@ def check_domain_exists(access_key_id, access_key_secret, domain_name):
         get_response_data(access_key_secret, CommonParams)
         return True
     except Exception as e:
-        print(e)
+        logging.error(e)
         return False
 
 
@@ -55,7 +56,7 @@ def create_domain(access_key_id, access_key_secret, domain_name):
     try:
         get_response_data(access_key_secret, CommonParams)
     except Exception as e:
-        print(e)
+        logging.error(e)
         pass
 
 
@@ -71,7 +72,7 @@ def get_record_value(access_key_id, access_key_secret, domain_name, sub_domain):
                 return record['Value']
         return 0
     except Exception as e:
-        print(e)
+        logging.error(e)
         return 0
 
 
@@ -87,7 +88,7 @@ def get_record_id(access_key_id, access_key_secret, domain_name, sub_domain):
                 return record['RecordId']
         return 0
     except Exception as e:
-        print(e)
+        logging.error(e)
         return 0
 
 
@@ -103,7 +104,7 @@ def add_record(access_key_id, access_key_secret, domain_name, sub_domain, localI
         data = get_response_data(access_key_secret, CommonParams)
         return data['RecordId']
     except Exception as e:
-        print(e)
+        logging.error(e)
         return 0
 
 
@@ -119,7 +120,7 @@ def record_ddns(access_key_id, access_key_secret, record_id, sub_domain, localIP
         data = get_response_data(access_key_secret, CommonParams)
         return data['RecordId']
     except Exception as e:
-        print(e)
+        logging.error(e)
         return 0
 
 
@@ -127,5 +128,4 @@ def sign(accessKeySecret, params):
     stringToSign = 'GET&%2F&' + parse.quote(parse.urlencode(params))
     h = hmac.new((accessKeySecret+'&').encode('utf-8'), stringToSign.encode('utf-8'), digestmod='sha1').digest()
     signature = base64.b64encode(h).decode('utf-8')
-    print(signature)
     return signature

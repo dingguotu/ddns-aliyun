@@ -1,9 +1,9 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
 from urllib import request
-import json
-import os
+import json, os, logging
 import aliyun
+import logger
 
 global LocalIP
 global HostIP
@@ -24,23 +24,30 @@ def ddns(domain):
         if record_value == 0:
             aliyun.add_record(Access_Key_Id, Access_Key_Secret, domain['name'], sub_domain, LocalIP)
         elif record_value != LocalIP:
-            print(f"Begin update [{sub_domain}.{domain['name']}].")
+            logging.info(f"Begin update [{sub_domain}.{domain['name']}].")
             record_id = aliyun.get_record_id(Access_Key_Id, Access_Key_Secret, domain['name'], sub_domain)
             aliyun.record_ddns(Access_Key_Id, Access_Key_Secret, record_id, sub_domain, LocalIP)
 
     
 def get_ip():
     global LocalIP
-    response = request.urlopen(r'http://ip.taobao.com/outGetIpInfo?ip=myip&accessKey=alibaba-inc').read().decode('utf-8')
-    data = json.loads(response)
-    LocalIP = data['data']['ip']
-    print(f'LocalIP is {LocalIP}')
+    try:
+        response = request.urlopen(r'http://ip.taobao.com/outGetIpInfo?ip=myip&accessKey=alibaba-inc').read().decode('utf-8')
+        data = json.loads(response)
+        LocalIP = data['data']['ip']
+        logging.info(f'LocalIP is {LocalIP}')
+        pass
+    except Exception as e:
+        logging.error('Get [LocalIP] Failed')
+        pass
+    
 
     
 if __name__ == '__main__':
     global Login_Token
-    conf = json.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "conf.json"), "r"))
 
+    logger.setup_logging()
+    conf = json.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "conf.json"), "r"))
     Access_Key_Id = conf['access_key']
     Access_Key_Secret = conf['access_secret']
     Domains = conf['domains']
@@ -51,5 +58,5 @@ if __name__ == '__main__':
             init_domain(domain)
             ddns(domain)
     except Exception as e:
-        print(e)
+        logging.error(e)
         pass
