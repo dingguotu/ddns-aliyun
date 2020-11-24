@@ -69,6 +69,7 @@ def get_record_value(access_key_id, access_key_secret, domain_name, sub_domain):
         records = data['DomainRecords']['Record']
         for record in records:
             if record['Type'] == 'A' and record['RR'] == sub_domain:
+                logging.info(f"Sub_Domain {sub_domain}'s hostIP is {record['Value']}")
                 return record['Value']
         return 0
     except Exception as e:
