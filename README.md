@@ -5,7 +5,7 @@
 @version 0.1.0
 ```
 
-ddns-aliyun 是基于[阿里云解析DNS](https://help.aliyun.com/product/29697.html)服务的动态解析脚本，用于检测 IP 变化并更新至阿里云，支持多域名解析。支持 Linux 设备，包括树莓派（[Raspberry Pi](https://www.raspberrypi.org/)）。不需要手动添加解析，只要跟着教程来，小白都可以很快上手（软件都不会安装的除外）。
+ddns-aliyun 是基于[阿里云解析DNS](https://help.aliyun.com/product/29697.html)服务的动态解析脚本，用于检测 IP 变化并更新至阿里云，支持多域名解析。支持 Linux 设备，包括树莓派（[Raspberry Pi](https://www.raspberrypi.org/)）和R4S。不需要手动添加解析，只要跟着教程来，小白都可以很快上手（软件都不会安装的除外）。
 
 ---
 
