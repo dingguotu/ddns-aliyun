@@ -7,6 +7,11 @@
             "sub_domains": ["@", "*"]
         },
         {
+            "name": "baidu.com",
+            "sub_domains": ["www"],
+            "ipv6": true
+        },
+        {
             "name": "google.com",
             "sub_domains": ["@", "*"]
         }

@@ -1,147 +1,76 @@
 #!/usr/bin/python
 # -*- coding: UTF-8 -*-
-from urllib import request
-import re, json, os, logging
+import json, os, logging, socket
 import aliyun
 import logger
+import ipv4, ipv6
 
-global LocalIP
-global HostIP
-global Login_Token
-global Domain_Id
-global Access_Key_Id
-global Access_Key_Secret
+global LocalIPV4
+LocalIPV4 = ''
 
-Headers = {
-    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9',
-    # 'Content-type': 'application/x-www-form-urlencoded',
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/89.0.4389.90 Safari/537.36 Edg/89.0.774.57'
-    }
+global LocalIPV6
+LocalIPV6 = ''
 
-def init_domain(domain):
-    domain_exists = aliyun.check_domain_exists(Access_Key_Id, Access_Key_Secret, domain['name'])
+def init_domain(aliyun_client, domain):
+    domain_exists = aliyun_client.check_domain_exists(domain['name'])
     if domain_exists == False:
-        aliyun.create_domain(Access_Key_Id, Access_Key_Secret, domain['name'])
+        aliyun_client.create_domain(domain['name'])
 
 
-def ddns(domain):
+def ddns(aliyun_client, domain):
+    record_type = 'AAAA' if domain.__contains__('ipv6') and domain['ipv6'] else 'A'
+    if record_type == 'AAAA' and socket.has_dualstack_ipv6 == False:
+        logging.error(f"Local machine has not ipv6.")
+        return
+    
+    ip = get_locat_ip(domain)
+    if ip is None or ip == '':
+        return
+    
     for sub_domain in domain['sub_domains']:
-        record_value = aliyun.get_record_value(Access_Key_Id, Access_Key_Secret, domain['name'], sub_domain)
+        record_value = aliyun_client.get_record_value(domain['name'], sub_domain, record_type)
         if record_value == 0:
-            aliyun.add_record(Access_Key_Id, Access_Key_Secret, domain['name'], sub_domain, LocalIP)
-        elif record_value != LocalIP:
+            aliyun_client.add_record(domain['name'], sub_domain, record_type, ip)
+        elif record_value != ip:
             logging.info(f"Begin update [{sub_domain}.{domain['name']}].")
-            record_id = aliyun.get_record_id(Access_Key_Id, Access_Key_Secret, domain['name'], sub_domain)
-            aliyun.record_ddns(Access_Key_Id, Access_Key_Secret, record_id, sub_domain, LocalIP)
+            record_id = aliyun_client.get_record_id(domain['name'], sub_domain, record_type)
+            aliyun_client.record_ddns(record_id, sub_domain, record_type, ip)
 
 
-def get_ip():
-    global LocalIP
+def get_locat_ip(domain):
+    if domain.__contains__('ipv6') and domain['ipv6']:
+        return get_ipv6()
+    else:
+        return get_ipv4()
 
-    ipDict = dict()
-    ip38(ipDict)
-    ip138(ipDict)
-    ipcn(ipDict)
-    ip42(ipDict)
-    jsonip(ipDict)
-    httpbin(ipDict)
-    ipify(ipDict)
 
-    LocalIP = sorted(ipDict.items(), key=lambda d:d[1], reverse = True)[0][0]
-    print(f'LocalIP is {LocalIP}')
+def get_ipv4():
+    global LocalIPV4
+    if LocalIPV4.strip() == '':
+        v4 = ipv4.IPV4()
+        LocalIPV4 = v4.get_local_ip()
+    return LocalIPV4
 
-# ip38
-def ip38(ipDict):
-    try:
-        ip38Req = request.Request(url=f'http://ip38.com/', headers=Headers, method='GET')
-        ip38Res = request.urlopen(ip38Req).read().decode('utf-8')
-        ip38 = re.findall(re.compile(r'<a href=/ip.php\?ip=(.*?)>'), ip38Res)[0]
-        ipDict[ip38] = ipDict.setdefault(ip38, 0) + 1
-    except Exception as e:
-        logging.error(e)
-        pass
 
-# ip138
-def ip138(ipDict):
-    try:
-        ip138Req = request.Request(url=f'https://2021.ip138.com/', headers=Headers, method='GET')
-        ip138Res = request.urlopen(ip138Req).read().decode('utf-8')
-        ip138 = re.findall(re.compile(r'\[<a.*?>(.*?)</a>\]'), ip138Res)[0]
-        ipDict[ip138] = ipDict.setdefault(ip138, 0) + 1
-    except Exception as e:
-        logging.error(e)
-        pass
-
-# ipcn
-def ipcn(ipDict):
-    try:
-        ipcnReq = request.Request(url=f'https://ip.cn/api/index?ip=&type=0', headers=Headers, method='GET')
-        ipcn = json.loads(request.urlopen(ipcnReq).read().decode('utf-8'))['ip']
-        ipDict[ipcn] = ipDict.setdefault(ipcn, 0) + 1
-    except Exception as e:
-        logging.error(e)
-        pass
-
-# ip.42
-def ip42(ipDict):
-    try:
-        ip42 = request.urlopen('http://ip.42.pl/raw').read().decode('utf-8')
-        ipDict[ip42] = ipDict.setdefault(ip42, 0) + 1
-    except Exception as e:
-        logging.error(e)
-        pass
-
-# jsonip
-def jsonip(ipDict):
-    try:
-        jsonip = json.loads(request.urlopen('http://jsonip.com').read().decode('utf-8'))['ip']
-        ipDict[jsonip] = ipDict.setdefault(jsonip, 0) + 1
-    except Exception as e:
-        logging.error(e)
-        pass
-
-# httpbin
-def httpbin(ipDict):
-    try:
-        httpbin = json.loads(request.urlopen('http://httpbin.org/ip').read().decode('utf-8'))['origin']
-        ipDict[httpbin] = ipDict.setdefault(httpbin, 0) + 1
-    except Exception as e:
-        logging.error(e)
-        pass    
-
-# ipify
-def ipify(ipDict):
-    try:
-        ipify = json.loads(request.urlopen('https://api.ipify.org/?format=json').read().decode('utf-8'))['ip']
-        ipDict[ipify] = ipDict.setdefault(ipify, 0) + 1
-    except Exception as e:
-        logging.error(e)
-        pass    
-
-# ip-api
-def ipapi(ipDict):
-    try:
-        ipapi = json.loads(request.urlopen('http://ip-api.com/json').read().decode('utf-8'))['query']
-        ipDict[ipapi] = ipDict.setdefault(ipapi, 0) + 1
-    except Exception as e:
-        logging.error(e)
-        pass    
+def get_ipv6():
+    global LocalIPV6
+    if LocalIPV6.strip() == '':
+        v6 = ipv6.IPV6()
+        LocalIPV6 = v6.get_local_ip()
+    return LocalIPV6
 
 
 if __name__ == '__main__':
-    global Login_Token
-
-    logger.setup_logging()
-    conf = json.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "conf.json"), "r"))
-    Access_Key_Id = conf['access_key']
-    Access_Key_Secret = conf['access_secret']
-    Domains = conf['domains']
-    
     try:
-        get_ip()
+        logger.setup_logging()
+        conf = json.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "conf.sample.json"), "r"))
+        Domains = conf['domains']
+        access_key = conf['access_key']
+        access_secret = conf['access_secret']
+        aliyun_client = aliyun.Aliyun(access_key, access_secret)
         for domain in Domains:
-            init_domain(domain)
-            ddns(domain)
+            init_domain(aliyun_client, domain)
+            ddns(aliyun_client, domain)
     except Exception as e:
         logging.error(e)
         pass
