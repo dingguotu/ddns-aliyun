@@ -63,7 +63,7 @@ def get_ipv6():
 if __name__ == '__main__':
     try:
         logger.setup_logging()
-        conf = json.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "conf.sample.json"), "r"))
+        conf = json.load(open(os.path.join(os.path.dirname(os.path.realpath(__file__)), "conf.json"), "r"))
         Domains = conf['domains']
         access_key = conf['access_key']
         access_secret = conf['access_secret']
